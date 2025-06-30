@@ -8,7 +8,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 # Setup Google Sheets connection from Streamlit secrets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 json_data = st.secrets["gcp_service_account"]
-credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(json_data), scope)
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
 client = gspread.authorize(credentials)
 
 # Nama Google Sheet & Worksheet (boleh ubah jika perlu)
