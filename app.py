@@ -1,43 +1,33 @@
 import streamlit as st
 import pandas as pd
 import gspread
-import json
-from io import StringIO
 from oauth2client.service_account import ServiceAccountCredentials
+import json
 
-# Setup Google Sheets connection from Streamlit secrets
+# Scope dan autorisasi
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-json_data = st.secrets["gcp_service_account"]
-credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
-client = gspread.authorize(credentials)
+credentials_dict = json.loads(st.secrets["GOOGLE_SERVICE_ACCOUNT"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
+client = gspread.authorize(creds)
 
-# Nama Google Sheet & Worksheet (boleh ubah jika perlu)
-SHEET_NAME = "SENARAI VALIDASI RMK12 (DH NK HABIS)"
-worksheet = client.open(SHEET_NAME).sheet1
-
-# Dapatkan semua data
+# Akses Google Sheet
+sheet = client.open_by_key("1G3Lox_L9Em6mdX1XHZxnGrs_vVIdHzXf")
+worksheet = sheet.get_worksheet(0)  # GID pertama
 data = worksheet.get_all_records()
 df = pd.DataFrame(data)
 
-# Tajuk aplikasi
-st.title("Carian Data Berdasarkan NO ASL")
+# UI Streamlit
+st.title("🔍 Sistem Carian ID Unik dari Google Sheets")
 
-# Input carian
-no_asl = st.text_input("Masukkan NO ASL")
+search_id = st.text_input("Masukkan ID unik (contoh: PRD001):")
 
-if no_asl:
-    result = df[df["NO ASL"].astype(str).str.strip() == no_asl.strip()]
-
-    if not result.empty:
-        row = result.iloc[0]
-        st.success("Maklumat Dijumpai:")
-        fields = [
-            "FASA", "NEGERI", "NAMA PETANI", "KOD SAMPLE PKK", "ROASTING",
-            "LIQUOR", "SENSORY CHOCOLATE 70%", "DATE", "TIME",
-            "TEMPERATURE", "COMMENT", "MACHINE", "KOD SENSORY", "SENSORY"
-        ]
-        for field in fields:
-            if field in row:
-                st.write(f"**{field}**: {row[field]}")
+if search_id:
+    results = df[df.astype(str).apply(lambda row: search_id.lower() in row.astype(str).str.lower().values[0], axis=1)]
+    
+    if not results.empty:
+        st.success(f"{len(results)} hasil dijumpai:")
+        st.dataframe(results)
     else:
-        st.error("NO ASL tidak dijumpai.")
+        st.error("❌ Tiada data dijumpai.")
+else:
+    st.info("Sila masukkan ID unik untuk mulakan carian.")
