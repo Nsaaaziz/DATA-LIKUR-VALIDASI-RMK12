@@ -1,0 +1,12 @@
+# Abaikan fail sensitif dan lokal
+credentials.json
+.streamlit/secrets.toml
+.env
+
+# Abaikan fail python cache
+__pycache__/
+*.pyc
+
+# Abaikan fail sistem/IDE
+.vscode/
+.DS_Store
