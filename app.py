@@ -1,11 +1,14 @@
 import streamlit as st
 import pandas as pd
 import gspread
+import json
+from io import StringIO
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Setup Google Sheets connection
+# Setup Google Sheets connection from Streamlit secrets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+json_data = st.secrets["gcp_service_account"]
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(json_data), scope)
 client = gspread.authorize(credentials)
 
 # Nama Google Sheet & Worksheet (boleh ubah jika perlu)
